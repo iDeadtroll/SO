@@ -1,0 +1,85 @@
+Problemas EPD1
+
+1. Create directories, for example called work and play.
+mkdir work | mkdir play
+
+
+2. Copy the / etc / passwd file in your directory.
+cp /etc/passwd .
+
+3. Move the copied file into the play subdirectory.
+mv password play/
+
+4. Create a file called hello.txt that contains the words "hello world"
+echo "hello world" > ./hello.txt
+
+5. How would you create a file called "$ SHELL"? Try it.
+echo "" > $SHELL 
+# Permiso denegado
+
+6. How would you delete a file that starts with the # symbol? Try it.
+echo "" > ./#prueba
+rm ./#prueba
+
+7. How would you believe and then delete a file that starts with the character "-"? Try it.
+echo "" > -prueba
+rm ./-prueba
+
+8. What happens when executing these commands in sequence: echo hello> test.txt. Echo bye >> test.txt echo bye
+>> test.txt ?. View the test.txt content with the cat command. What if we now run "echo good> test.txt"?
+echo hello > test.txt
+echo bye >> test.txt
+echo bye >> test.txt
+cat test.txt
+echo good > test.txt
+cat test.txt
+
+9. Create two files called input1.txt and input2.txt, each containing 10 lines of text. What is the effect of the command
+input1.txt input2.txt> output.txt
+nano input1.txt
+nano input2.txt
+
+input1.txt input2.txt > output.txt
+orden no encontrada
+Y si quiero meter de verdad los datos de los dos?
+echo input1.txt input2.txt > output.txt # NO FUNCIONA
+cat input1.txt input2.txt > output.txt
+
+10. What is the effect of the sort input.txt | Uniq> output.txt? Creates imput.txt as union of imput1 and 2.
+cat input1.txt input2.txt > input.txt
+sort input.txt | uniq > output.txt
+cat output.txt
+
+11. What is the output of the echo {con, pre} {sent, fer} {s, ed} command?
+Lo mismo.
+
+12. Copy your / etc / passwd and / etc / group files into your directory with a single command as if you could specify /etc only once.
+cp /etc/passwd . | cp /etc/group .
+
+13. After you have created two subdirectories, called play and work, in your home directory. Copy the contents of the work-in-play directory with a single command.
+cp -a play/. work-in-play/ | cp -a work/. work-in-play/
+
+14. Delete the work directory and all its contents with a single command.
+rm -R work
+rm --h
+
+15. Switch to a directory that is protected, try to delete all its contents. (Avoid / proc or / dev as a precaution)
+
+16. Experiment with the command ls, what are the effects of the options I, d, R and F?
+ls
+ls -l
+ls -d
+ls -R
+ls -F
+ls -la
+ll
+
+17. What is the effect of the cat command test.txt | Sort | Uniq
+cat input1.txt | sort | uniq
+
+18. Create a file named private.txt, which contains two lines of text. How can you assign the permissions so that only the owner can read and write the file?
+nano private.txt
+chmod 600 private.txt
+
+19. How can all files ending with .txt be assigned permissions so that only the owner and the group can read and write the files? You experience more than one way.
+chmod 660 *.txt
