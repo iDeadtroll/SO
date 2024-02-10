@@ -54,16 +54,21 @@ cat output.txt
 Lo mismo.
 
 12. Copy your / etc / passwd and / etc / group files into your directory with a single command as if you could specify /etc only once.
-cp /etc/passwd . | cp /etc/group .
+cp /etc/passwd . | cp /etc/group . #bueno
+cp /etc/{passwd,group} .   #mejor
 
 13. After you have created two subdirectories, called play and work, in your home directory. Copy the contents of the work-in-play directory with a single command.
-cp -a play/. work-in-play/ | cp -a work/. work-in-play/
+mkdir work-in-play
+cp -a play/. work-in-play/ | cp -a work/. work-in-play/ #bueno
+cp -a {work,play}/ work-in-play/  #mejor
+
 
 14. Delete the work directory and all its contents with a single command.
-rm -R work
+rm -R work/
 rm --h
 
 15. Switch to a directory that is protected, try to delete all its contents. (Avoid / proc or / dev as a precaution)
+probar con cuidado!
 
 16. Experiment with the command ls, what are the effects of the options I, d, R and F?
 ls
