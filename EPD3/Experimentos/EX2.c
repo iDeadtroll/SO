@@ -15,7 +15,7 @@ int main()
     { // proceso hijo
         if (execl("/bin/ls", "/bin/ls", "-al", NULL) == -1)
             printf("Error al ejecutar execl\n");
-            exit(1);
+        exit(1);
     }
     else
     { // Proceso Padre

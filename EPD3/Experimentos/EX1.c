@@ -20,7 +20,6 @@ int main()
         printf("Hijo: La variable n vale %d \n", n);
         printf("Hijo: voy a dormir 2 segundos\n");
         sleep(6);
-        printf("Hijo: mi estado actual %d\n", status);
         exit(1);
     }
     else
