@@ -6,27 +6,25 @@
 
 int main()
 {
+
     int pid, status = 0;
+
     if ((pid = fork()) == -1)
     {
-        printf("Error la crear hijo\n");
+        printf("Error al crear el proceso");
         exit(1);
     }
-
     if (pid == 0)
     {
-        printf("Hijo: ejecutando ...\n");
-        if (execl("/bin/grep", "/bin/grep", "-n", "printf", "P2.c", NULL) == -1)
+        if (execl("/home/developer/proyectos/SO/EPD3/Problemas/AP1_source", "/home/developer/proyectos/SO/EPD3/Problemas/AP1_source", "3", "2", "1", NULL) == -1)
         {
-            printf("Error al ejecutar execl\n");
+            printf("Error al ejecutar execl");
             exit(1);
         }
     }
     else
     {
-        printf("Padre: esperando a que hijo termine...\n");
         wait(&status);
-        printf("Padre: fin de ejecucion\n");
         exit(0);
     }
 }
