@@ -3,7 +3,7 @@
 echo "Sintaxis de operadores en 'bash'para 'Matematicas'"
         echo "operador  : significado"
 # Aniadimos elemento a elemento:
-operadores[0]=" -eq     :   == "
+operadores[0]="-eq      :   == "
 operadores[1]="-ne      :   != "
 operadores[2]="-lt      :   < "
 operadores[3]="-le      :   <= "
