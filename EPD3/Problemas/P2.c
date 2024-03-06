@@ -21,7 +21,8 @@ int main()
         scanf("%d", &m);
         n = m;
         printf("\nHijo: valor modificado por %d", m);
-        int varPrueba = 10;
+        int varPrueba;
+        
         printf("\nHijo: valor nueva variable %d", varPrueba);
         exit(0);
     }
