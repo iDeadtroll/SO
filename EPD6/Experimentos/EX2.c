@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <semaphore.h>
 #include <pthread.h>
+
 #define TAMBUF 8     // Tamaño del búfer circular
 #define NUMDATOS 100 // Número de datos a enviar
 //
@@ -56,11 +57,11 @@ void *consumidor(void *arg2)
     int i, midato;
     for (i = 1; i <= NUMDATOS; i++)
     {
-        sem_wait(&hay_datos);
+        sem_wait(&hay_datos); // Resta 1 al semaforo
         pthread_mutex_lock(&buffer_lock);
         obten_dato(&midato);
         pthread_mutex_unlock(&buffer_lock);
-        sem_post(&hay_sitio);
+        sem_post(&hay_sitio); // Suma 1 al semaforo
         sum += midato;
     }
     pthread_exit(NULL);
@@ -80,8 +81,8 @@ main()
     sem_init(&hay_sitio, 0, TAMBUF);
     //
     // Se crean los threads
-    pthread_create(&tidcons, NULL, consumidor, NULL);
-    pthread_create(&tidprod, NULL, productor, NULL);
+    pthread_create(&tidcons, NULL, consumidor, NULL); // Hilo de tipo consumidor
+    pthread_create(&tidprod, NULL, productor, NULL);  // Hilo del tipo productor
 
     //
     // Se espera a que los threads terminen
