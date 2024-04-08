@@ -22,6 +22,7 @@ int aviones_en_espera[2] = {0, 0}; // 0: normal, 1: vip
 char *ultimo_avion = NULL;
 time_t ultimo_vip = 0; // Tiempo en el que el último avión VIP despegó o aterrizó
 
+
 // Estructura para representar un avión con id, tipo, estado y operación
 typedef struct
 {
@@ -31,10 +32,70 @@ typedef struct
     char *operacion;
 } Avion;
 
+
+// Estructura para los nodos de la cola
+typedef struct Node {
+    Avion* avion;
+    struct Node* next;
+} Node;
+
+// Estructura para la cola
+typedef struct Queue {
+    Node* front;
+    Node* rear;
+} Queue;
+
+// Función para crear una nueva cola
+Queue* createQueue() {
+    Queue* q = (Queue*)malloc(sizeof(Queue));
+    q->front = q->rear = NULL;
+    return q;
+}
+
+// Función para añadir un avión al final de la cola
+void enQueue(Queue* q, Avion* avion) {
+    Node* temp = (Node*)malloc(sizeof(Node));
+    temp->avion = avion;
+    temp->next = NULL;
+    if (q->rear == NULL) {
+        q->front = q->rear = temp;
+        return;
+    }
+    q->rear->next = temp;
+    q->rear = temp;
+}
+
+// Función para eliminar un avión del frente de la cola
+Avion* deQueue(Queue* q) {
+    if (q->front == NULL)
+        return NULL;
+    Node* temp = q->front;
+    Avion* avion = temp->avion;
+    q->front = q->front->next;
+    if (q->front == NULL)
+        q->rear = NULL;
+    free(temp);
+    return avion;
+}
+
+// Función para verificar si la cola está vacía
+int isEmpty(Queue* q) {
+    return (q->rear == NULL);
+}
+
+// Colas para la espera de los aviones
+Queue* cola_aviones_normales;
+Queue* cola_aviones_vip;
+
 // Función para la ejecución de un avión
 void *run(void *arg)
 {
     Avion *avion = (Avion *)arg;
+        if (strcmp(avion->tipo, "NORMAL") == 0) {
+        avion = deQueue(cola_aviones_normales);
+    } else {
+        avion = deQueue(cola_aviones_vip);
+    }
     printf("Avión [%d] %s está en %s, esperando para %s.\n", avion->id, avion->tipo, avion->estado, avion->operacion);
     sem_wait(&mutex);                                                               // Espera para acceder a la sección crítica
     aviones_en_espera[avion->tipo == "NORMAL" ? 0 : 1] += 1;                        // Incrementa el número de aviones en espera
@@ -64,7 +125,7 @@ void *run(void *arg)
     {
         printf("Avión [%d] %s dirigiéndose a puerta de embarque.\n", avion->id, avion->tipo);
     }
-    printf("Avión [%d] %s, hasta luego.\n", avion->id, avion->tipo);
+    printf("Avión [%d] %s, hasta luego.\n", avion->id, avion->tipo); // Mensaje al terminar la operacion aterrizaje/despegue
     ultimo_avion = avion->tipo;        // Actualiza el último avión
     sem_post(&pistas[pista_asignada]); // Libera la pista
     free(avion);                       // Libera la memoria del avión
@@ -73,13 +134,18 @@ void *run(void *arg)
 
 int main()
 {
+    // Inicializa los semáforos de las pistas
     for (int i = 0; i < NUM_PISTAS; i++)
     {
-        sem_init(&pistas[i], 0, 1); // Inicializa los semáforos de las pistas
+        sem_init(&pistas[i], 0, 1);
     }
     sem_init(&mutex, 0, 1);            // Inicializa el semáforo mutex
     sem_init(&aviones_normales, 0, 0); // Inicializa el semáforo de aviones normales
     sem_init(&aviones_vip, 0, 0);      // Inicializa el semáforo de aviones VIP
+
+    // Crea las colas para los aviones normales y VIP
+    cola_aviones_normales = createQueue();
+    cola_aviones_vip = createQueue();
 
     int id = 0;
     while (1)
@@ -92,6 +158,14 @@ int main()
         avion->tipo = tipo;
         avion->estado = estado;
         avion->operacion = operacion;
+
+        // Añade el avión a su cola correspondiente
+        if (strcmp(tipo, "NORMAL") == 0) {
+            enQueue(cola_aviones_normales, avion);
+        } else {
+            enQueue(cola_aviones_vip, avion);
+        }
+
         pthread_t thread;
         pthread_create(&thread, NULL, run, avion); // Crea un nuevo hilo para el avión
         id += 1;
