@@ -12,10 +12,10 @@
 #define TIEMPO_ENTRE_VIP 30
 
 // Semaforos para las pistas, mutex, aviones normales y VIP
-sem_t pistas[NUM_PISTAS];
-sem_t mutex; // Semaforo para asignar una pista
-sem_t aviones_normales;
-sem_t aviones_vip;
+sem_t mutex;              // Semaforo binario para asignar pista
+sem_t pistas[NUM_PISTAS]; // Array de semaforos binarios para proteger la pistas asignadas
+sem_t aviones_normales;   // Semaforo de conteo para colas de aviones normales
+sem_t aviones_vip;        // Semaforo de conteo para colas de aviones VIP
 
 // Variables globales para los aviones en espera (normales y VIP) y el último avión (normal o VIP)
 int aviones_normales_en_movimiento = 0;
@@ -43,7 +43,7 @@ typedef struct Queue
 {
     Node *front;
     Node *rear;
-    int size; // Cambiado de int* a int
+    int size;
 } Queue;
 
 // Función para crear una nueva cola
@@ -108,6 +108,8 @@ Queue *cola_aviones_vip;
 void *run(void *arg)
 {
     Avion *avion = (Avion *)arg;
+
+    // Desencolamos un avion segun su tipo.
     if (strcmp(avion->tipo, "NORMAL") == 0)
     {
         avion = deQueue(cola_aviones_normales);
@@ -117,15 +119,18 @@ void *run(void *arg)
     {
         avion = deQueue(cola_aviones_vip);
     }
+
     printf("Avión [%d] %s está en %s, esperando para %s.\n", avion->id, avion->tipo, avion->estado, avion->operacion);
-    sem_wait(&mutex);                                                                                                                                          // Acceder a la sección crítica 'asigna una pista'
-    int pista_asignada = rand() % NUM_PISTAS;                                                                                                                  // Numero aleatorio para asignar una pista
-    if (avion->tipo == "NORMAL" || (avion->tipo == "VIP" && ultimo_avion != "VIP") && aviones_normales_en_movimiento == 0 && cola_aviones_normales->size == 0) // Si el avión es normal o es VIP y el último avión no fue VIP
+    sem_wait(&mutex);                                                                // Protege el recurso 'asignar pista'                                                                                                                                    // Protege el recurso que decide a qué pista se asignará un avión.                                                                                                                   // Acceder a la sección crítica 'asigna una pista'
+    int pista_asignada = rand() % NUM_PISTAS;                                        // Numero aleatorio para asignar una pista
+    if (avion->tipo == "NORMAL" ||                                                   // Si el avión es normal o
+        (avion->tipo == "VIP" && ultimo_avion != "VIP") &&                           // es VIP y el último avión no fue VIP
+            aviones_normales_en_movimiento == 0 && cola_aviones_normales->size == 0) // y no hay aviones normales en movimiento
     {
         printf("Pista %d preparada.\n", pista_asignada);
-        sem_wait(&pistas[pista_asignada]); // Se asigna la pista indicando el indice
+        sem_wait(&pistas[pista_asignada]); // Protege el recurso de la pista específica que se ha asignado al avión.
         printf("Pista %d asignada a Avión [%d] %s.\n", pista_asignada, avion->id, avion->tipo);
-        if (avion->tipo == "VIP") // Si el avión es VIP
+        if (avion->tipo == "VIP")
         {
             time_t ahora = time(NULL);
             if (ultimo_avion == "VIP" && ahora - ultimo_vip < TIEMPO_ENTRE_VIP) // Si el último avión fue VIP y no ha pasado el tiempo mínimo entre aviones VIP
@@ -135,8 +140,8 @@ void *run(void *arg)
             ultimo_vip = time(NULL); // Actualiza el tiempo del último avión VIP
         }
     }
-    sem_post(&mutex);                                                     // Libera la sección crítica 'a'
-    sem_post(avion->tipo == "NORMAL" ? &aviones_normales : &aviones_vip); // Libera el semáforo correspondiente al tipo de avión
+    sem_post(&mutex);                                                     // Libera el recurso que asigna pista
+    sem_post(avion->tipo == "NORMAL" ? &aviones_normales : &aviones_vip); // Libera el semáforo correspondiente al tipo de avión, permitiendo que otros aviones del mismo tipo procedan.
     printf("Avión [%d] %s dirigiéndose a pista de %s.\n", avion->id, avion->tipo, avion->operacion);
     sleep(TIEMPO_LLEGADA_PISTA); // Espera el tiempo de llegada a pista
     printf("Avión [%d] %s %s en Pista %d.\n", avion->id, avion->tipo, avion->operacion, pista_asignada);
