@@ -4,15 +4,20 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <time.h>
 
-void crearArchivo(){
+int crearArchivo(){
     FILE *fp;
-    fp = fopen("archivo.txt", "r");
+    char archivo[100];
+    printf("Ingrese el nombre del archivo: ");
+    scanf("%s",archivo);
+    fp = fopen(archivo, "r");
     if(fp == NULL){
-    	fp = fopen("archivo.txt", "w")
+        fp = fopen(archivo, "w");
+        printf("Archivo creado\n");
     }else{
-    	prinf("El archivo ya existe");
-    	return 1;
+        printf("El archivo ya existe\n");
+        return 1;
     }
     fclose(fp);
     return 0;
@@ -68,35 +73,26 @@ void compararArchivos(){
     }
 }
 
-void mostrarPropiedades(int argc, char *argv[]) {
-    if (argc != 2) {
-        fprintf(stderr, "Error: %s el archivo no existe\n", argv[0]);
-        return 1;
-    }
+void mostrarPropiedades(char *archivo) {
     struct stat sb;
-    if (stat(argv[1], &sb) == -1) {
+    if (stat(archivo, &sb) == -1) {
         perror("stat");
-        return 1;
+        exit(EXIT_FAILURE);
     }
-    printf("Archivo: %s\n", argv[1]);
+    printf("Archivo: %s\n", archivo);
     printf("Tamanio: %lld bytes\n", (long long) sb.st_size);
     printf("Permisos: %o\n", sb.st_mode & 0777);
     printf("Ultimo acceso: %s", ctime(&sb.st_atime));
     printf("Ultima modificacion: %s", ctime(&sb.st_mtime));
-    return 0;
 }
 
-void copiarArchivo(int argc, char *argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Error: %s ingrese origen y destino\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-    FILE *source = fopen(argv[1], "rb");
+void copiarArchivo(char *origen, char *destino) {
+    FILE *source = fopen(origen, "rb");
     if (source == NULL) {
         perror("fopen");
         exit(EXIT_FAILURE);
     }
-    FILE *destination = fopen(argv[2], "wb");
+    FILE *destination = fopen(destino, "wb");
     if (destination == NULL) {
         perror("fopen");
         exit(EXIT_FAILURE);
@@ -107,35 +103,45 @@ void copiarArchivo(int argc, char *argv[]) {
     }
     fclose(source);
     fclose(destination);
-    return 0;
 }
 
-int main() {
-
-
-	int opt;
-	printf("Seleccione opcion:");
-	scanf("%d",&opt);
-	printf("1. Crear un archivo en blanco");
-	printf("2. Comparar el contenido de dos archivos");
-	printf("3. Mostrar las proiedades de un archivo");
-	printf("4. Copiar archivo");
-	
-	switch (opt){
-		case 1:
-			crearArchivo();
-			printf("Archivo creado\n");
-		break;
-		case 2:
-			compararArchivos();
-		break;
-		case 3:
-			mostrarPropiedades(argc, argv);
-		break;
-		case 4:
-			copiarArchivo(argc, argv);
-		break;
-			
-	}
-	return 0;
+int main(int argc, char *argv[]) {
+    int opt;
+    char archivo[100];
+    char origen[100], destino[100];
+    printf("1. Crear un archivo en blanco\n");
+    printf("2. Comparar el contenido de dos archivos\n");
+    printf("3. Mostrar las proiedades de un archivo\n");
+    printf("4. Copiar archivo\n");
+    printf("Seleccione opcion:");
+    scanf("%d",&opt);
+    
+    switch (opt){
+        case 1:
+            crearArchivo();
+        break;
+        case 2:
+            compararArchivos();
+        break;
+        case 3:
+            printf("Introduce el nombre del archivo: ");
+            scanf("%s", archivo);
+            mostrarPropiedades(archivo);
+            break;
+        break;
+        case 4:
+        //Se podria comprobar si el archivo existe
+            printf("Introduce el archivo origen: ");
+            scanf("%s", origen);
+            //archivoExiste();
+            printf("Introduce el archivo destino: ");
+            scanf("%s", destino);
+            //archivoExiste();
+            copiarArchivo(origen, destino);
+            break;
+        default:
+            printf("Opcion no valida\n");
+            break;
+    }
+    return 0;
 }
