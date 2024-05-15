@@ -9,7 +9,8 @@ int main() {
     char buf;
     char *numbers[] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine"};
     char traduccion[10];
-    if (pipe(fd1) == -1 || pipe(fd2) == -1) {
+
+    if (pipe(fd1) == -1 || pipe(fd2) == -1) { // crea las tuberías
         perror("pipe");
         exit(EXIT_FAILURE);
     }
@@ -21,8 +22,8 @@ int main() {
     if (pid == 0) { // proceso hijo
         close(fd1[1]);
         close(fd2[0]); 
-        read(fd1[0], &buf, 1);
-        int num = buf - '0';
+        read(fd1[0], &buf, 1); 
+        int num = buf - '0'; // convierte el carácter leído de la tubería en un número entero
         if (num >= 1 && num <= 9) {
             strcpy(traduccion, numbers[num-1]);
             write(fd2[1], traduccion, strlen(traduccion)+1);
@@ -37,7 +38,7 @@ int main() {
         scanf("%c", &buf);
         write(fd1[1], &buf, 1);
         read(fd2[0], traduccion, sizeof(traduccion));
-        printf("Ingrese un numero: %c\nTraduccion: %s\n", buf, traduccion);
+        printf("Traduccion: %s\n",traduccion);
         close(fd1[1]);
         close(fd2[0]);
         wait(NULL);
