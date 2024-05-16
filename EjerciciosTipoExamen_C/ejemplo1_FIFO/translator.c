@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <ctype.h>
 
-// Las tuberias van en una sola direccion
+// Las tiberias van en una sola direccion
 // '0' para leer y '1' para escribir
 // Las funciones read y write son bloqueantes(es decir incorporan semaforos)
 // Si queremos comunicar dos procesos en un mismo archivo usamos tuberias para comunicar dos procesos
