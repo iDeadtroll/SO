@@ -5,12 +5,11 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <time.h>
+#include <dirent.h>
+#include <string.h>
 
-int crearArchivo(){
+int crearArchivo(char *archivo){
     FILE *fp;
-    char archivo[100];
-    printf("Ingrese el nombre del archivo: ");
-    scanf("%s",archivo);
     fp = fopen(archivo, "r");
     if(fp == NULL){
         fp = fopen(archivo, "w");
@@ -23,54 +22,38 @@ int crearArchivo(){
     return 0;
 }
 
-void archivoExiste(){
+int archivoExiste(char *archivo){
     FILE *file;
-    if (file = fopen("archivo.txt", "r")) {
+    if ((file = fopen(archivo, "r"))) {
         fclose(file);
-        printf("el archivo ya existe\n");
+        return (1);
     } else {
-    	crearArchivo();
-        printf("el archivo no exite\n");
+        return 0;
     }
 }
 
-void compararArchivos(){
+void compararArchivos(char *archivo1, char *archivo2){
     FILE *fp1, *fp2;
     int ch1, ch2;
-    char fname1[40], fname2[40];
 
-    printf("Ingrese el nombre del primer archivo :");
-    scanf("%s",fname1);
+    fp1 = fopen(archivo1, "r");
+    fp2 = fopen(archivo2, "r");
 
-    printf("Ingrese el nombre del segundo archivo:");
-    scanf("%s",fname2);
+    ch1 = getc(fp1);
+    ch2 = getc(fp2);
 
-    fp1 = fopen(fname1, "r");
-    fp2 = fopen(fname2, "r");
-
-    if (fp1 == NULL) {
-        printf("No se puede abrir %s para leer\n", fname1);
-        exit(1);
-    } else if (fp2 == NULL) {
-        printf("No se puede abrir %s para leer\n", fname2);
-        exit(1);
-    } else {
+    while ((ch1 != EOF) && (ch2 != EOF) && (ch1 == ch2)) {
         ch1 = getc(fp1);
         ch2 = getc(fp2);
-
-        while ((ch1 != EOF) && (ch2 != EOF) && (ch1 == ch2)) {
-            ch1 = getc(fp1);
-            ch2 = getc(fp2);
-        }
-
-        if (ch1 == ch2)
-            printf("Los archivos son iguales\n");
-        else if (ch1 != ch2)
-            printf("Los archivos son diferentes\n");
-
-        fclose(fp1);
-        fclose(fp2);
     }
+
+    if (ch1 == ch2)
+        printf("Los archivos son iguales\n");
+    else if (ch1 != ch2)
+        printf("Los archivos son diferentes\n");
+
+    fclose(fp1);
+    fclose(fp2);
 }
 
 void mostrarPropiedades(char *archivo) {
@@ -105,39 +88,123 @@ void copiarArchivo(char *origen, char *destino) {
     fclose(destination);
 }
 
-int main(int argc, char *argv[]) {
+
+void eliminarArchivo(char *archivo) {
+    if (remove(archivo) != 0)
+        perror("remove");
+}
+
+void cambiarNombreArchivo(char *antiguoNombre, char *nuevoNombre) {
+    if (rename(antiguoNombre, nuevoNombre) == 0)
+        printf("El archivo ha sido renombrado\n");
+    else
+        perror("rename");
+}
+
+int directorioExiste(const char *path) {
+   struct stat info;
+
+   if(stat(path, &info) != 0)
+       return 0;
+   else if(info.st_mode & S_IFDIR)
+       return 1;
+   else
+       return 0;
+}
+
+void moverArchivo(char *origen, char *destino) {
+    char directorioDestino[256];
+    strncpy(directorioDestino, destino, strrchr(destino, '/') - (destino));
+    directorioDestino[strrchr(destino, '/') - (destino)] = '\0';
+
+    if (directorioExiste(directorioDestino)) {
+        copiarArchivo(origen, destino);
+        eliminarArchivo(origen);
+    } else {
+        printf("El directorio de destino no existe\n");
+    }
+}
+
+void listarDirectorioActual() {
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(".");
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            printf("%s\n", dir->d_name);
+        }
+        closedir(d);
+    }
+}
+
+void obtenerNombresArchivos(char *origen, char *destino, char *mensaje1, char *mensaje2) {
+    printf("%s", mensaje1);
+    scanf("%s", origen);
+    // if (!archivoExiste(origen)) {
+    //     printf("El archivo %s no existe\n", origen);
+    //     exit(1);
+    // }
+    printf("%s", mensaje2);
+    scanf("%s", destino);
+    // if (archivoExiste(destino)) {
+    //     printf("El archivo %s ya existe\n", destino);
+    //     exit(1);
+    // }
+}
+
+int main() {
     int opt;
     char archivo[100];
     char origen[100], destino[100];
     printf("1. Crear un archivo en blanco\n");
     printf("2. Comparar el contenido de dos archivos\n");
-    printf("3. Mostrar las proiedades de un archivo\n");
+    printf("3. Mostrar las propiedades de un archivo\n");
     printf("4. Copiar archivo\n");
-    printf("Seleccione opcion:");
+    printf("5. Eliminar archivo\n");
+    printf("6. Cambiar nombre de archivo\n");
+    printf("7. Mover archivo\n");
+    printf("8. Listar directorio actual\n");
+    printf("Seleccione opcion: ");
     scanf("%d",&opt);
     
     switch (opt){
         case 1:
-            crearArchivo();
+            printf("Introduce el nombre del archivo: ");
+            scanf("%s", archivo);
+            if (archivoExiste(archivo)) {
+                printf("El archivo ya existe\n");
+                break;
+            }
+            crearArchivo(archivo);
         break;
         case 2:
-            compararArchivos();
+            obtenerNombresArchivos(origen, destino, "Introduce el nombre del primer archivo: ", "Introduce el nombre del segundo archivo: ");
+            compararArchivos(origen, destino);
         break;
         case 3:
             printf("Introduce el nombre del archivo: ");
             scanf("%s", archivo);
             mostrarPropiedades(archivo);
-            break;
         break;
         case 4:
-        //Se podria comprobar si el archivo existe
-            printf("Introduce el archivo origen: ");
-            scanf("%s", origen);
-            //archivoExiste();
-            printf("Introduce el archivo destino: ");
-            scanf("%s", destino);
-            //archivoExiste();
+            obtenerNombresArchivos(origen, destino, "Introduce el archivo origen: ", "Introduce el archivo destino: ");
             copiarArchivo(origen, destino);
+            break;
+        case 5:
+            printf("Introduce el nombre del archivo: ");
+            scanf("%s", archivo);
+            eliminarArchivo(archivo);
+            break;
+        case 6:
+            obtenerNombresArchivos(origen, destino, "Introduce el nombre del archivo: ", "Introduce el nuevo nombre: ");
+            cambiarNombreArchivo(origen, destino);
+            break;
+        case 7: 
+            obtenerNombresArchivos(origen, destino, "Introduce el archivo origen: ", "Introduce el archivo destino: ");
+            moverArchivo(origen, destino);
+            break;
+        case 8: 
+            listarDirectorioActual();
             break;
         default:
             printf("Opcion no valida\n");
