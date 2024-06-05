@@ -1,4 +1,4 @@
-# Scheduling/Planificación/Administración
+# Scheduling/Administración/Planificación
 
 - **preemptive**: cuando un proceso esta en ejecución este ***se puede interrumpir***
 - **nonpreemptive**: cuando un proceso esta en ejecución este **NO se puede interrumpir**
